@@ -5,7 +5,7 @@ import os
 import datetime
 from pathlib import Path
 
-CONFIG_PATH = "pdforensic_tools_config.json"
+CONFIG_PATH = "pdforensic_config.json"
 DEFAULT_OUTPUT_DIR = Path("output")
 DEFAULT_SOURCE_DIR = Path("Documents/Source")
 
@@ -28,7 +28,8 @@ def print_banner():
 
 
 def choose_input_path():
-    path = input("Enter file or folder path to analyze: ").strip()
+    print("Enter file or folder path to analyze:")
+    path = input("> ").strip()
     p = Path(path)
     if not p.exists():
         print("❌ Path does not exist.")
@@ -49,17 +50,30 @@ def choose_tools(tools_config):
 
 def run_tool(tool, input_path: Path, output_dir: Path):
     cmd_template = tool['command']
-    input_type = 'folder' if input_path.is_dir() else 'file'
     cmd = cmd_template.replace("{input}", str(input_path)).replace("{output}", str(output_dir))
+
     print(f"\n🔧 Running {tool['name']}:")
+    print(f"[DEBUG] Executing command: {cmd}")
+
+    log_dir = output_dir / "logs"
+    log_dir.mkdir(exist_ok=True)
+    log_file = log_dir / f"{tool['flag']}_output.log"
+
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+
+        with open(log_file, "w", encoding="utf-8") as f:
+            f.write("=== STDOUT ===\n")
+            f.write(result.stdout)
+            f.write("\n=== STDERR ===\n")
+            f.write(result.stderr)
+
         if result.returncode == 0:
-            print(f"✅ {tool['name']} completed successfully.")
+            print(f"✅ {tool['name']} completed successfully. Log saved to {log_file}")
         else:
-            print(f"❌ {tool['name']} failed:\n{result.stderr}")
+            print(f"❌ {tool['name']} failed with return code {result.returncode}. See log at {log_file}")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error running {tool['name']}: {e}")
 
 
 def zip_output(out_path):
@@ -82,6 +96,10 @@ def main():
         run_tool(tool, input_path, output_dir)
 
     zip_output(output_dir)
+    print(f"🔒 Output saved to: {output_dir}")
+    
+    if not any(output_dir.iterdir()):
+        output_dir.rmdir()
 
-if __name__ == '__main__':
-    main()
+    print("📝 Logs saved to:", output_dir / "logs")
+    print("🎉 All done!")
