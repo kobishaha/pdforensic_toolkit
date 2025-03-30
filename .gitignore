@@ -3,6 +3,15 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+src
+.pdf
+.env
+.env.local
+.DS_Store
+.env.development
+.env.production
+.env.test
+.env.development.local
 
 # Python dependencies
 __pycache__/
@@ -36,3 +45,4 @@ build/
 *.tmp
 *.temp
 *.bak
+.DS_Store
