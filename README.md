@@ -7,14 +7,14 @@ A forensic command-line tool for analyzing PDF files: metadata, hidden objects, 
 
 ## 🧠 Features
 
-* Full support for** ****file or folder** input
-* Detects** ****scanned** vs** ****digitally created** PDFs
-* Handles** ** **multiple tools** :
-  * `pdfinfo`,** **`exiftool`
-  * `pdftotext`,** **`strings`,** **`grep`
-  * `pdfimages`,** **`qpdf`,** **`mutool`
-  * `ocrmypdf` /** **`tesseract`
-  * `xxd`,** **`file`,** **`diff`
+* Full support for******file or folder** input
+* Detects******scanned** vs******digitally created** PDFs
+* Handles**** **multiple tools** :
+  * `pdfinfo`,****`exiftool`
+  * `pdftotext`,****`strings`,****`grep`
+  * `pdfimages`,****`qpdf`,****`mutool`
+  * `ocrmypdf` /****`tesseract`
+  * `xxd`,****`file`,****`diff`
 * **Interactive menu** if no arguments are given
 * **Command-line flags** for automation
 * **Output ZIP** , CSV and structure per run
@@ -29,21 +29,21 @@ python pdforensic_cli_ultimate.py [<file_or_folder>] [options]
 
 ### 🔤 Options
 
-| Flag   | Tool             | Description                                     |
-| ------ | ---------------- | ----------------------------------------------- |
+| Flag | Tool             | Description                                 |
+| ---- | ---------------- | ------------------------------------------- |
 | `-m` | Metadata         | Extract metadata with `pdfinfo`, `exiftool` |
-| `-t` | Text             | Extract text with `pdftotext`                 |
-| `-s` | Structure        | Analyze PDF internal structure                  |
-| `-h` | Hidden text      | Find hidden layers and text                     |
-| `-i` | Image extraction | Extract all embedded images                     |
-| `-o` | OCR              | Run OCR (Tesseract or OCRmyPDF)                 |
-| `-d` | Decode streams   | QPDF --qdf to unpack objects                    |
-| `-a` | All              | Run all supported analyses                      |
+| `-t` | Text             | Extract text with `pdftotext`               |
+| `-s` | Structure        | Analyze PDF internal structure              |
+| `-h` | Hidden text      | Find hidden layers and text                 |
+| `-i` | Image extraction | Extract all embedded images                 |
+| `-o` | OCR              | Run OCR (Tesseract or OCRmyPDF)             |
+| `-d` | Decode streams   | QPDF --qdf to unpack objects                |
+| `-a` | All              | Run all supported analyses                  |
 
 If no arguments are passed, you'll be prompted:
 
-1. For** ****file/folder path**
-2. For** ****actions** to perform (A, M, T, etc.)
+1. For******file/folder path**
+2. For******actions** to perform (A, M, T, etc.)
 
 ---
 
@@ -51,10 +51,10 @@ If no arguments are passed, you'll be prompted:
 
 Each run will generate:
 
-* Folder:** **`forensic_results/<filename>_<timestamp>`
+* Folder:****`forensic_results/<filename>_<timestamp>`
 * Inside:
-  * `pdf_info.txt`,** **`exif.json`,** **`text.txt`,** **`images/`,** **`ocr_output.pdf`,** **`ocr_output.txt`, etc.
-  * Final:** **`summary.csv`,** **`output.zip`
+  * `pdf_info.txt`,****`exif.json`,** **`text.txt`,** **`images/`,** **`ocr_output.pdf`,****`ocr_output.txt`, etc.
+  * Final:****`summary.csv`,****`output.zip`
 
 ---
 
@@ -123,4 +123,4 @@ python pdforensic_cli_ultimate.py
 
 ## 👥 Contributing
 
-Want to add a forensic trick? Add a new tool in the** **`tools_config.json` and submit a PR 💥
+Want to add a forensic trick? Add a new tool in the****`tools_config.json` and submit a PR 💥
