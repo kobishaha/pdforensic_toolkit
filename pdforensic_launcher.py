@@ -5,7 +5,7 @@ import os
 import datetime
 from pathlib import Path
 
-CONFIG_PATH = "pdforensic_config.json"
+CONFIG_PATH = "pdforensic_tools_config.json"
 DEFAULT_OUTPUT_DIR = Path("output")
 DEFAULT_SOURCE_DIR = Path("Documents/Source")
 
@@ -44,7 +44,7 @@ def choose_tools(tools_config):
     choices = input("Select tools to run (e.g. 1,3,5 or 'all'): ").strip().lower()
     if choices == 'all':
         return tools_config
-    selected_indices = [int(c) - 1 for c in choices.split(',') if c.isdigit()]
+    selected_indices = [int(c) - 1 for c in choices.split(',') if c.strip().isdigit()]
     return [tools_config[i] for i in selected_indices if 0 <= i < len(tools_config)]
 
 
@@ -97,9 +97,13 @@ def main():
 
     zip_output(output_dir)
     print(f"🔒 Output saved to: {output_dir}")
-    
+
     if not any(output_dir.iterdir()):
         output_dir.rmdir()
 
     print("📝 Logs saved to:", output_dir / "logs")
     print("🎉 All done!")
+
+
+if __name__ == "__main__":
+    main()
