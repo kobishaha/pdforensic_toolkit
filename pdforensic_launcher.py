@@ -1,92 +1,87 @@
-import argparse
 import json
-import os
 import subprocess
+import shutil
+import os
+import datetime
 from pathlib import Path
-from datetime import datetime
-from rich.console import Console
-from rich.prompt import Prompt, Confirm
-from rich.table import Table
 
-console = Console()
+CONFIG_PATH = "pdforensic_tools_config.json"
+DEFAULT_OUTPUT_DIR = Path("output")
+DEFAULT_SOURCE_DIR = Path("Documents/Source")
 
-# Load config
-CONFIG_PATH = Path("pdforensic_tools_config.json")
-with CONFIG_PATH.open("r", encoding="utf-8") as f:
-    config = json.load(f)
 
-global_settings = config.get("global_settings", {})
-tools = config.get("tools", {})
+def load_config():
+    with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
-def run_command(cmd):
-    console.print(f"[bold yellow]🔧 Running:[/bold yellow] {cmd}")
-    result = subprocess.run(cmd, shell=True)
-    if result.returncode != 0:
-        console.print(f"[bold red]❌ Command failed:[/bold red] {cmd}")
-    else:
-        console.print("[bold green]✅ Command succeeded[/bold green]")
 
-def zip_output(output_dir):
-    zip_name = output_dir.with_suffix(".zip")
-    subprocess.run(f"zip -r '{zip_name}' '{output_dir.name}'", shell=True)
-    console.print(f"📦 Zipped to: {zip_name}")
+def print_banner():
+    print(r"""
+██████╗ ███████╗██████╗ ███████╗ ██████╗ ██████╗ ███████╗███╗   ██╗██╗ ██████╗
+██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝ ██╔══██╗██╔════╝████╗  ██║██║██╔════╝
+██║  ██║█████╗  ██████╔╝█████╗  ██║  ███╗██████╔╝█████╗  ██╔██╗ ██║██║██║     
+██║  ██║██╔══╝  ██╔══██╗██╔══╝  ██║   ██║██╔═══╝ ██╔══╝  ██║╚██╗██║██║██║     
+██████╔╝███████╗██║  ██║███████╗╚██████╔╝██║     ███████╗██║ ╚████║██║╚██████╗
+╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═══╝╚═╝ ╚═════╝
+              Forensic CLI Tool for PDF Analysis
+""")
 
-def create_output_dir(base_name):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_dir = Path(global_settings["default_output"])/f"{base_name}_{timestamp}"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    return out_dir
 
-def list_tools():
-    table = Table(title="PDF Forensic CLI Tool - Menu")
-    table.add_column("Flag", justify="center", style="cyan", no_wrap=True)
-    table.add_column("Name", style="bold")
-    table.add_column("Description")
-    for key, val in tools.items():
-        table.add_row(val["flag"], val["name"], val["description"])
-    console.print(table)
+def choose_input_path():
+    path = input("Enter file or folder path to analyze: ").strip()
+    p = Path(path)
+    if not p.exists():
+        print("❌ Path does not exist.")
+        exit(1)
+    return p
 
-def choose_tools():
-    list_tools()
-    choice = Prompt.ask("Select tools to run (e.g. m,t,o,a or all)")
-    return choice.lower().split(',') if choice != 'all' else list(tools.keys())
 
-def process_file(file_path, selected_tools):
-    console.print(f"\n[bold blue]🔍 Processing:[/bold blue] {file_path}")
-    out_dir = create_output_dir(Path(file_path).stem)
-    for key in selected_tools:
-        if key in tools:
-            for cmd in tools[key]["commands"]:
-                cmd_formatted = cmd.format(input=file_path, output=out_dir)
-                run_command(cmd_formatted)
-    if global_settings.get("zip_output"):
-        zip_output(out_dir)
+def choose_tools(tools_config):
+    print("Available tools:")
+    for i, tool in enumerate(tools_config):
+        print(f"{i + 1}. {tool['name']} ({tool['flag']}) - {tool['description']}")
+    choices = input("Select tools to run (e.g. 1,3,5 or 'all'): ").strip().lower()
+    if choices == 'all':
+        return tools_config
+    selected_indices = [int(c) - 1 for c in choices.split(',') if c.isdigit()]
+    return [tools_config[i] for i in selected_indices if 0 <= i < len(tools_config)]
+
+
+def run_tool(tool, input_path: Path, output_dir: Path):
+    cmd_template = tool['command']
+    input_type = 'folder' if input_path.is_dir() else 'file'
+    cmd = cmd_template.replace("{input}", str(input_path)).replace("{output}", str(output_dir))
+    print(f"\n🔧 Running {tool['name']}:")
+    try:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(f"✅ {tool['name']} completed successfully.")
+        else:
+            print(f"❌ {tool['name']} failed:\n{result.stderr}")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+
+
+def zip_output(out_path):
+    zip_path = shutil.make_archive(str(out_path), 'zip', root_dir=out_path)
+    print(f"📦 Output zipped to: {zip_path}")
+
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("target", nargs="?", help="PDF file or folder to process")
-    parser.add_argument("-f", "--flags", help="Comma-separated tool flags to run (e.g. -m,t,o)")
-    args = parser.parse_args()
+    print_banner()
+    config = load_config()
+    tools = config['tools']
+    global_output = Path(config['global'].get('output_dir', DEFAULT_OUTPUT_DIR))
+    output_dir = global_output / f"session_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    if not args.target:
-        target = Prompt.ask("Enter PDF file or folder path")
-    else:
-        target = args.target
+    input_path = choose_input_path()
+    selected_tools = choose_tools(tools)
 
-    selected_tools = []
-    if not args.flags:
-        selected_tools = choose_tools()
-    else:
-        selected_tools = args.flags.lower().split(',')
+    for tool in selected_tools:
+        run_tool(tool, input_path, output_dir)
 
-    target_path = Path(target)
-    if target_path.is_dir():
-        for pdf in target_path.glob("*.pdf"):
-            process_file(pdf, selected_tools)
-    elif target_path.is_file():
-        process_file(target_path, selected_tools)
-    else:
-        console.print("[bold red]❌ Invalid input path[/bold red]")
+    zip_output(output_dir)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

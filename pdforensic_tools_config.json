@@ -1,78 +1,82 @@
 {
   "global_settings": {
-    "output_dir": "output",
-    "zip_results": true,
-    "generate_csv": true,
-    "csv_path": "output/results_summary.csv",
-    "clean_temp": true
+    "output_base_dir": "output",
+    "ocr_language": "heb+eng",
+    "ocr_dpi": 300,
+    "zip_output": true,
+    "default_image_format": "jpeg"
   },
-  "tools": {
-    "metadata": {
-      "flag": "m",
+  "tools": [
+    {
+      "id": "m",
       "name": "Metadata Extraction",
-      "description": "Extract PDF metadata using pdfinfo and exiftool",
+      "description": "Extract metadata using pdfinfo and exiftool",
       "commands": [
-        "pdfinfo \"{input}\" > \"{output}/pdfinfo.txt\"",
-        "exiftool \"{input}\" > \"{output}/exiftool.txt\""
-      ]
+        "pdfinfo \"{input}\" > \"{output_dir}/pdfinfo.txt\"",
+        "exiftool \"{input}\" > \"{output_dir}/metadata.txt\""
+      ],
+      "output_dir": "metadata"
     },
-    "text": {
-      "flag": "t",
+    {
+      "id": "t",
       "name": "Text Extraction",
       "description": "Extract text from PDF using pdftotext",
       "commands": [
-        "pdftotext \"{input}\" \"{output}/extracted_text.txt\""
-      ]
+        "pdftotext -layout \"{input}\" \"{output_dir}/output.txt\""
+      ],
+      "output_dir": "text"
     },
-    "structure": {
-      "flag": "s",
-      "name": "Structure Analysis",
-      "description": "Analyze internal PDF structure with qpdf and mutool",
+    {
+      "id": "o",
+      "name": "OCR (Tesseract via OCRmyPDF)",
+      "description": "Run OCR on PDF using OCRmyPDF with forced OCR",
       "commands": [
-        "qpdf --qdf --object-streams=disable \"{input}\" \"{output}/decoded_qdf.pdf\"",
-        "mutool show \"{input}\" > \"{output}/mutool_structure.txt\""
-      ]
+        "ocrmypdf --force-ocr --output-type pdf --rotate-pages --deskew -l {ocr_language} --sidecar \"{output_dir}/ocr_output.txt\" \"{input}\" \"{output_dir}/ocr_output.pdf\""
+      ],
+      "output_dir": "ocr"
     },
-    "hidden": {
-      "flag": "h",
-      "name": "Hidden Text Search",
-      "description": "Search for hidden text using strings and grep",
-      "commands": [
-        "strings \"{input}\" > \"{output}/strings.txt\"",
-        "grep -a -o '[[:print:]]\\{4,\\}' \"{input}\" > \"{output}/grep_hidden.txt\""
-      ]
-    },
-    "images": {
-      "flag": "i",
-      "name": "Image Extraction",
-      "description": "Extract embedded images using pdfimages",
-      "commands": [
-        "pdfimages -all \"{input}\" \"{output}/image\""
-      ]
-    },
-    "hex": {
-      "flag": "x",
+    {
+      "id": "x",
       "name": "Hex Dump",
-      "description": "Generate hex dump using xxd",
+      "description": "Generate hex dump of PDF",
       "commands": [
-        "xxd \"{input}\" > \"{output}/hex_dump.txt\""
-      ]
+        "xxd \"{input}\" > \"{output_dir}/dump.hex\""
+      ],
+      "output_dir": "hex"
     },
-    "ocr": {
-      "flag": "o",
-      "name": "OCR with Tesseract",
-      "description": "Run OCR using OCRmyPDF and Tesseract (heb+eng)",
+    {
+      "id": "s",
+      "name": "Structure Analysis",
+      "description": "Analyze internal PDF structure",
       "commands": [
-        "ocrmypdf --force-ocr --output-type pdf --rotate-pages --deskew -l heb+eng \"{input}\" \"{output}/ocr_output.pdf\""
-      ]
+        "qpdf --qdf --object-streams=disable \"{input}\" \"{output_dir}/decoded.pdf\"",
+        "mutool show \"{input}\" > \"{output_dir}/mutool_structure.txt\""
+      ],
+      "output_dir": "structure"
     },
-    "decode": {
-      "flag": "d",
-      "name": "Stream Decode",
-      "description": "Decode PDF streams using qpdf --qdf",
+    {
+      "id": "i",
+      "name": "Image Extraction",
+      "description": "Extract images from PDF using pdfimages",
       "commands": [
-        "qpdf --qdf --object-streams=disable \"{input}\" \"{output}/decoded_streams.pdf\""
-      ]
+        "pdfimages -all \"{input}\" \"{output_dir}/img\""
+      ],
+      "output_dir": "images"
+    },
+    {
+      "id": "e",
+      "name": "ExifTool on All Extracted Objects",
+      "description": "Run ExifTool on extracted assets (images/objects)",
+      "commands": [
+        "exiftool -r \"{output_dir}\" -csv > \"{output_dir}/exif_all.csv\""
+      ],
+      "output_dir": "metadata"
+    },
+    {
+      "id": "a",
+      "name": "Run All Tools",
+      "description": "Run all analysis tools",
+      "commands": []
     }
-  }
+  ]
 }
