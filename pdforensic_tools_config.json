@@ -1,0 +1,78 @@
+{
+  "global_settings": {
+    "output_dir": "output",
+    "zip_results": true,
+    "generate_csv": true,
+    "csv_path": "output/results_summary.csv",
+    "clean_temp": true
+  },
+  "tools": {
+    "metadata": {
+      "flag": "m",
+      "name": "Metadata Extraction",
+      "description": "Extract PDF metadata using pdfinfo and exiftool",
+      "commands": [
+        "pdfinfo \"{input}\" > \"{output}/pdfinfo.txt\"",
+        "exiftool \"{input}\" > \"{output}/exiftool.txt\""
+      ]
+    },
+    "text": {
+      "flag": "t",
+      "name": "Text Extraction",
+      "description": "Extract text from PDF using pdftotext",
+      "commands": [
+        "pdftotext \"{input}\" \"{output}/extracted_text.txt\""
+      ]
+    },
+    "structure": {
+      "flag": "s",
+      "name": "Structure Analysis",
+      "description": "Analyze internal PDF structure with qpdf and mutool",
+      "commands": [
+        "qpdf --qdf --object-streams=disable \"{input}\" \"{output}/decoded_qdf.pdf\"",
+        "mutool show \"{input}\" > \"{output}/mutool_structure.txt\""
+      ]
+    },
+    "hidden": {
+      "flag": "h",
+      "name": "Hidden Text Search",
+      "description": "Search for hidden text using strings and grep",
+      "commands": [
+        "strings \"{input}\" > \"{output}/strings.txt\"",
+        "grep -a -o '[[:print:]]\\{4,\\}' \"{input}\" > \"{output}/grep_hidden.txt\""
+      ]
+    },
+    "images": {
+      "flag": "i",
+      "name": "Image Extraction",
+      "description": "Extract embedded images using pdfimages",
+      "commands": [
+        "pdfimages -all \"{input}\" \"{output}/image\""
+      ]
+    },
+    "hex": {
+      "flag": "x",
+      "name": "Hex Dump",
+      "description": "Generate hex dump using xxd",
+      "commands": [
+        "xxd \"{input}\" > \"{output}/hex_dump.txt\""
+      ]
+    },
+    "ocr": {
+      "flag": "o",
+      "name": "OCR with Tesseract",
+      "description": "Run OCR using OCRmyPDF and Tesseract (heb+eng)",
+      "commands": [
+        "ocrmypdf --force-ocr --output-type pdf --rotate-pages --deskew -l heb+eng \"{input}\" \"{output}/ocr_output.pdf\""
+      ]
+    },
+    "decode": {
+      "flag": "d",
+      "name": "Stream Decode",
+      "description": "Decode PDF streams using qpdf --qdf",
+      "commands": [
+        "qpdf --qdf --object-streams=disable \"{input}\" \"{output}/decoded_streams.pdf\""
+      ]
+    }
+  }
+}

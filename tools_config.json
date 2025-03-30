@@ -1,0 +1,75 @@
+[
+  {
+    "flag": "-m",
+    "name": "Metadata",
+    "description": "Extracts metadata using pdfinfo and exiftool.",
+    "commands": [
+      "pdfinfo \"{input}\" > \"{output_dir}/pdfinfo.txt\"",
+      "exiftool \"{input}\" > \"{output_dir}/exiftool.txt\""
+    ]
+  },
+  {
+    "flag": "-t",
+    "name": "Text Extraction",
+    "description": "Extracts all visible text using pdftotext.",
+    "commands": [
+      "pdftotext -layout \"{input}\" \"{output_dir}/text_output.txt\""
+    ]
+  },
+  {
+    "flag": "-s",
+    "name": "Structure Analysis",
+    "description": "Analyzes the PDF structure using qpdf and mutool.",
+    "commands": [
+      "qpdf --qdf --object-streams=disable \"{input}\" \"{output_dir}/qdf_output.pdf\"",
+      "mutool clean -d -a \"{input}\" \"{output_dir}/mutool_cleaned.pdf\""
+    ]
+  },
+  {
+    "flag": "-h",
+    "name": "Hidden Text",
+    "description": "Searches for hidden or embedded strings.",
+    "commands": [
+      "strings \"{input}\" > \"{output_dir}/strings_output.txt\"",
+      "grep -a -oP '[\\x20-\\x7E]{4,}' \"{input}\" > \"{output_dir}/grep_hidden.txt\""
+    ]
+  },
+  {
+    "flag": "-i",
+    "name": "Image Extraction",
+    "description": "Extracts embedded images using pdfimages.",
+    "commands": [
+      "pdfimages -all \"{input}\" \"{output_dir}/image\""
+    ]
+  },
+  {
+    "flag": "-x",
+    "name": "Hex Dump",
+    "description": "Creates a hex dump using xxd.",
+    "commands": [
+      "xxd \"{input}\" > \"{output_dir}/hex_dump.txt\""
+    ]
+  },
+  {
+    "flag": "-o",
+    "name": "OCR",
+    "description": "Performs OCR using OCRmyPDF with forced recognition in Hebrew and English.",
+    "commands": [
+      "ocrmypdf --force-ocr --output-type pdf --rotate-pages --deskew -l heb+eng \"{input}\" \"{output_dir}/ocr_output.pdf\""
+    ]
+  },
+  {
+    "flag": "-d",
+    "name": "Decode Streams",
+    "description": "Decodes object streams using QPDF.",
+    "commands": [
+      "qpdf --qdf --object-streams=disable \"{input}\" \"{output_dir}/decoded_output.pdf\""
+    ]
+  },
+  {
+    "flag": "-a",
+    "name": "All Analyses",
+    "description": "Runs all analyses tools.",
+    "commands": []
+  }
+]
